@@ -9,7 +9,7 @@ class Scene{
     public:
         Scene(); 
         void init();
-        void update();
+        void update(float dt);
         void draw(int frameBufferWidth, int frameBufferHeight);
         // GLFW callbacks
         void onKey         (int key, int action, int mods);

@@ -36,6 +36,8 @@ GLFWwindow* initGLFW()
 
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // vsync
+
+    return window;
 }
 void initGlad()
 {

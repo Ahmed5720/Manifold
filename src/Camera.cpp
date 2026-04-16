@@ -2,13 +2,13 @@
 #include <GLFW/glfw3.h>
 #include <algorithm>
 #include <cstring>
-
+#include <iostream>
 using namespace glm;
 Camera::Camera(vec3 position, float yawDeg, float pitchDeg)
     : m_pos(position)
     , m_yaw(yawDeg)
     , m_pitch(pitchDeg)
-    , m_fov(60.f)
+    , m_fov(70.f)
 {   
 
     // hmmmhmm unnessicary jargon
@@ -70,7 +70,8 @@ void Camera::onMouseMove(double xpos, double ypos) {
 }
 
 void Camera::onScroll(double /*xoffset*/, double yoffset) {
-    m_fov = std::clamp(m_fov - static_cast<float>(yoffset) * 2.f, 10.f, 90.f);
+  //  m_fov = std::clamp(m_fov - static_cast<float>(yoffset) * 2.f, 10.f, 90.f);
+  //  std::cout << "m_fov" << m_fov << "\n";
 }
 
 

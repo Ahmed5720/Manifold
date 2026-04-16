@@ -1,7 +1,7 @@
 #include "scene.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
-Scene::Scene() : m_cam({0.f, 8.f, 20.f}, -90.f, -20.f)
+Scene::Scene() : m_cam({4.f, 8.f, -10.f}, -90.f, -20.f)
 {}
 // {   
 //     Scene.m_cam({0.f, 8.f, 20.f}, -90.f, -20.f) // initialze camera position, Feild of view, and ..? 
@@ -15,12 +15,12 @@ void Scene::update(float dt)
 {
     m_cam.update(dt);
 }
-void Scene::draw(int frameBufferWidth, int frameBufferHeight)
+void Scene::draw(int fbWidth, int fbHeight)
 {
     const float aspect = (fbHeight > 0) ? static_cast<float>(fbWidth) / static_cast<float>(fbHeight) : 1.f; // here we use static casts as opposed to c-style casts as its type safe
 
     glViewport(0, 0, fbWidth, fbHeight);
-    glClearColor(scene_color);
+    glClearColor(0.12f, 0.12f, 0.14f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     const glm::mat4 view = m_cam.viewMatrix();

@@ -60,7 +60,7 @@ void Renderer::drawAxes(const mat4& view, const mat4& proj) {
 void Renderer::buildGrid() 
 {   
     // builds a grid of 64 * 64 units centered at origin with unit length 1.0
-    constexpr int HALF = 32;
+    constexpr int HALF = 8;
     constexpr float STEP = 1.0f;
     constexpr int LINES = (HALF * 2 + 1);
     vector<float> verts; // vector of float 3 or 3 vector of size vertices * 3? 
@@ -95,7 +95,7 @@ We'll use two separate VBOs for clarity (positions / colours).
 */
 void Renderer::buildAxes()
 {
-    constexpr float LEN = 4.0f;
+    constexpr float LEN = 16.0f;
  
     const float positions[] = {
         // X axis
