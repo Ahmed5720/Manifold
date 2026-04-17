@@ -42,8 +42,26 @@ class Mesh
 
         void forEachHalfEdgeofFace(int startHe, const function<void(int)>& cb) const;
         void forEachHalfEdgeOfVertex(int vert, const function<void(int)>& cb) const;
+        
+        // returns list of all vertices of a face
+        vector<int> faceVertices(int faceIdx) const;
 
+        // computes normals of all vertices as an area weighted average of face normals
+        void computeNormals();
 
+        // gets centroid of a face as average of vertex positions
+        vec3 faceCentroid(int faceIdx) const;
+        // cross product between two edges of a face, normalized
+        vec3 faceNormal(int faceIdx) const;
+
+        // mutations
+
+        int addVertex(vec3 pos);
+        int addface();
+        int addHalfEdge();
+
+        void linkFaceLoop(int faceIdx, const vector<int>& heIndices);
+        int findHalfEdge(int fromVertex, int toVertex) const;
 
 
 };
