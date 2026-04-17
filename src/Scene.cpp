@@ -1,6 +1,7 @@
 #include "scene.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+
 Scene::Scene() : m_cam({4.f, 8.f, -10.f}, -90.f, -20.f)
 {}
 // {   
@@ -28,6 +29,7 @@ void Scene::draw(int fbWidth, int fbHeight)
 
     m_renderer.drawGrid(view, proj);
     
+    m_renderer.drawMesh(view, proj);
     // no depth test for axis, always on top
     m_renderer.drawAxes(view, proj);
 

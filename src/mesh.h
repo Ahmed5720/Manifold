@@ -29,6 +29,11 @@ struct Face
     int halfedge = -1; // stores any half edge belonging to the face.
 };
 
+
+const int edgeKey(int vFrom, int vTo)
+{
+    return vFrom * 1000 + vTo; 
+}
 class Mesh
 {
     public:

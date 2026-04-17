@@ -1,7 +1,7 @@
 #pragma once
 #include "Camera.h"
 #include "renderer.h"
-
+#include "mesh.h"
 // scene is the single module that is accessed from main, it owns the camera and the renderer as well as the A_mesh
 // calls renderer.draw() methods
 
@@ -21,6 +21,6 @@ class Scene{
     private:
         Camera m_cam;
         Renderer m_renderer;
-        glm::vec3 scene_color;
+        Mesh m_mesh;
 
 };

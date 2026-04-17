@@ -14,8 +14,10 @@ class Renderer{
 
         void init(); 
 
-        void drawGrid(const glm::mat4& view, const glm::mat4& proj);
+        void drawGrid(const mat4& view, const glm::mat4& proj);
         void drawAxes(const mat4& view, const glm::mat4& proj);
+        void drawMesh(const mat4& view, const mat4& proj);
+        void uploadMesh(const Mesh&  mesh);
     private:
         uint32_t compileShader (uint32_t type, const std::string& src);
         uint32_t linkProgram   (uint32_t vert, uint32_t frag);
@@ -37,4 +39,15 @@ class Renderer{
     
         void buildGrid();
         void buildAxes();
-};
+
+        // Mesh
+        uint32_t m_meshVAO      = 0;
+        uint32_t m_meshVBO      = 0;  // interleaved: position(3) + normal(3)
+        uint32_t m_meshEBO      = 0;  // triangle indices
+        uint32_t m_meshProg     = 0;
+        uint32_t m_wireVAO      = 0;
+        uint32_t m_wireVBO      = 0;  // edge line endpoints
+        uint32_t m_wireProg     = 0;
+        int      m_meshTriCount = 0;
+        int      m_wireVertCount = 0;
+    };
