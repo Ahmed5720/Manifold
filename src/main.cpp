@@ -8,6 +8,10 @@
 #include <cstdio>
 #include "Scene.h"
 
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 // Forward declarations of GLFW callbacks
 static void cbKey        (GLFWwindow*, int, int, int, int);
 static void cbMouseButton(GLFWwindow*, int, int, int);
@@ -49,11 +53,27 @@ void initGlad()
 
 
 }   
+
+void initIMGUI(GLFWwindow* window)
+{
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, /*install_callbacks=*/true);
+    ImGui_ImplOpenGL3_Init("#version 410");
+
+    // if (GLAD_GL_ARB_debug_output) {
+    //     glEnable(GL_DEBUG_OUTPUT);
+    //     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    //     glDebugMessageCallback(cbGLError, nullptr);
+    //     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
+    // }
+}
 int main() {
 
     GLFWwindow* window = initGLFW();
     initGlad();
-
+    initIMGUI(window); 
 
     Scene scene;
     scene.init();
@@ -82,11 +102,24 @@ int main() {
         int fbW = 0, fbH = 0;
         glfwGetFramebufferSize(window, &fbW, &fbH);
 
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
         scene.update(dt);
         scene.draw(fbW, fbH);
+        scene.drawUI(dt);
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 
         glfwSwapBuffers(window);
     }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     glfwDestroyWindow(window);
     glfwTerminate();

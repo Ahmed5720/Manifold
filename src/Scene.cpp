@@ -1,7 +1,8 @@
 #include "scene.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
-
+#include <imgui.h>
+#include <iostream>
 Scene::Scene() : m_cam({4.f, 8.f, -10.f}, -90.f, -20.f)
 {}
 // {   
@@ -32,9 +33,56 @@ void Scene::draw(int fbWidth, int fbHeight)
     m_renderer.drawGrid(view, proj);
     
     m_renderer.drawMesh(view, proj);
+    
     // no depth test for axis, always on top
     m_renderer.drawAxes(view, proj);
 
+}
+
+void Scene::drawUI(float dt) {
+
+    std :: cout << "showing ui\n";
+    // Smooth FPS over ~30 frames to avoid jitter
+    m_fpsAccum  += (dt > 0.f ? 1.f / dt : 0.f);
+    m_fpsFrames += 1;
+    if (m_fpsFrames >= 30) {
+        m_smoothFps = m_fpsAccum / static_cast<float>(m_fpsFrames);
+        m_fpsAccum  = 0.f;
+        m_fpsFrames = 0;
+    }
+ 
+    // Anchor to the top-left corner with a small margin, no user resize/move
+    ImGui::SetNextWindowPos ({10.f, 10.f}, ImGuiCond_Always);
+    ImGui::SetNextWindowSize({220.f, 0.f}, ImGuiCond_Always); // height = auto
+    ImGui::Begin("Stats", nullptr,
+                 ImGuiWindowFlags_NoResize        |
+                 ImGuiWindowFlags_NoMove          |
+                 ImGuiWindowFlags_NoCollapse      |
+                 ImGuiWindowFlags_NoSavedSettings |
+                 ImGuiWindowFlags_NoTitleBar      |
+                 ImGuiWindowFlags_AlwaysAutoResize);
+ 
+    ImGui::Text("FPS        %5.1f",  m_smoothFps);
+    ImGui::Text("Frame      %.2f ms", dt * 1000.f);
+    ImGui::Separator();
+ 
+    const int numFaces    = static_cast<int>(m_mesh.faces.size());
+    const int numVerts    = static_cast<int>(m_mesh.vertices.size());
+    const int numEdges    = static_cast<int>(m_mesh.halfedges.size()) / 2;
+ 
+    ImGui::Text("Vertices   %d", numVerts);
+    ImGui::Text("Edges      %d", numEdges);
+    ImGui::Text("Faces      %d", numFaces);
+    //ImGui::Text("Triangles  %d", numTris);
+    ImGui::Separator();
+ 
+    // const Vec3 p = m_camera.position();
+    // ImGui::Text("Camera");
+    // ImGui::Text("  pos  %.2f  %.2f  %.2f", p.x, p.y, p.z);
+    // const Vec3 f = m_camera.forward();
+    // ImGui::Text("  fwd  %.2f  %.2f  %.2f", f.x, f.y, f.z);
+ 
+     ImGui::End();
 }
 
 

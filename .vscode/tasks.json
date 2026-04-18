@@ -9,9 +9,11 @@
                 "-g",
                 "-std=c++17",
                 "-I${workspaceFolder}/include",
+                "-I${workspaceFolder}/include/imgui",
                 "-L${workspaceFolder}/lib",
                 "${workspaceFolder}/src/*.cpp", 
                 "${workspaceFolder}/src/glad.c",
+                "${workspaceFolder}/src/imgui/*.cpp",
                 "-lglfw3dll",
                 "-o",
                 "${workspaceFolder}/manifold.exe"
