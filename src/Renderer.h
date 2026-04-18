@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <string>
 #include <glm/gtc/type_ptr.hpp>
+#include "mesh.h"
 
 // owns openGL objects (VAOs, VBOS and Shader programs)
 // a caller passes matrices and the renderer issues the drawcalls

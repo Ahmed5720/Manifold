@@ -4,7 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <cstdio> 
-
+#include <iostream>
 
 using namespace std;
 using namespace glm;
@@ -16,17 +16,52 @@ Renderer::~Renderer()
     glDeleteProgram     (m_gridProg);
  
     glDeleteVertexArrays(1, &m_axesVAO);
-    glDeleteBuffers     (1, &m_axesVBO);
-    glDeleteBuffers     (1, &m_axesCBO);
-    glDeleteProgram     (m_axesProg);
+    glDeleteBuffers(1, &m_axesVBO);
+    glDeleteBuffers(1, &m_axesCBO);
+    glDeleteBuffers(1, &m_meshVBO);
+    glDeleteBuffers(1, &m_meshEBO);
+    glDeleteVertexArrays(1, &m_meshVAO);
+    glDeleteProgram(m_axesProg);
+    glDeleteProgram(m_meshProg);
+
+    glDeleteVertexArrays(1, &m_wireVAO);
+    glDeleteBuffers     (1, &m_wireVBO);
+    glDeleteProgram     (m_wireProg);
 }
 
 void Renderer::init()
 {
     m_gridProg = loadProgram("shaders/grid.vert", "shaders/grid.frag");
     m_axesProg = loadProgram("shaders/axes.vert", "shaders/axes.frag");
+    m_meshProg = loadProgram("shaders/mesh.vert", "shaders/mesh.frag");
+    m_wireProg = loadProgram("shaders/wire.vert", "shaders/wire.frag");
     buildGrid();
     buildAxes();
+
+
+    glGenVertexArrays(1, &m_meshVAO);
+    glGenBuffers     (1, &m_meshVBO);
+    glGenBuffers     (1, &m_meshEBO);
+ 
+    glBindVertexArray(m_meshVAO);
+    glBindBuffer(GL_ARRAY_BUFFER,         m_meshVBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_meshEBO);
+    // layout: position(0) vec3 + normal(1) vec3  = 24 bytes
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),reinterpret_cast<void*>(0));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
+    glBindVertexArray(0);
+
+
+    glGenVertexArrays(1, &m_wireVAO);
+    glGenBuffers     (1, &m_wireVBO);
+ 
+    glBindVertexArray(m_wireVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_wireVBO);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    glBindVertexArray(0);
 }
 
 void Renderer::drawGrid(const mat4& view, const mat4& proj)
@@ -133,6 +168,102 @@ void Renderer::buildAxes()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
  
     glBindVertexArray(0);
+}
+
+// takes a mesh in our mesh datastructure, and builds vbo and ebo from it so it can be uploaded on gpu
+// observe that we need to triangulate first (simply fan triangulation before we can build the ebo)
+void Renderer::uploadMesh(const Mesh& m)
+{
+    vector<float> vboData(m.vertices.size() * 6);
+    vector<uint32_t> eboData;
+    eboData.reserve(m.faces.size() * 6);
+    int i = 0;
+    for (int vi = 0; vi < m.vertices.size(); vi++)
+    {   
+        const Vertex& v = m.vertices[vi];
+        vboData[i++] = v.position.x;
+        vboData[i++] = v.position.y;
+        vboData[i++] = v.position.z;
+        vboData[i++] = v.normal.x;
+        vboData[i++] = v.normal.y;
+        vboData[i++] = v.normal.z;
+    }
+
+    for (int fi = 0; fi < m.faces.size(); fi++)
+    {
+        const auto verts = m.faceVertices(fi);
+        // fan triangulate 0,1,2 .. 0,2,3 .. 
+        for (int i = 1; i < verts.size()-1; i++)
+        {
+            eboData.push_back((uint32_t)verts[0]);
+            eboData.push_back((uint32_t)verts[i]);
+            eboData.push_back((uint32_t)verts[i + 1]);
+        }
+    }
+
+    m_meshTriCount = eboData.size();
+    std :: cout << "tri count " << m_meshTriCount << "\n";
+    glBindVertexArray(m_meshVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_meshVBO);
+    glBufferData(GL_ARRAY_BUFFER,static_cast<GLsizeiptr>(vboData.size() * sizeof(float)), vboData.data(), GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_meshEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(eboData.size() * sizeof(uint32_t)), eboData.data(), GL_DYNAMIC_DRAW);
+
+    glBindVertexArray(0);
+
+
+     // Wireframe edges
+    // Emit one line segment per unique half-edge 
+    vector<float> wireData;
+    for (int i = 0; i < static_cast<int>(m.halfedges.size()); ++i) {
+        const halfEdge& he = m.halfedges[i];
+        if (he.twin != -1 && he.twin < i) continue;
+ 
+        const vec3& a = m.vertices[he.vertex].position;
+        const vec3& b = m.vertices[m.halfedges[he.next].vertex].position;
+        wireData.insert(wireData.end(), {a.x, a.y, a.z, b.x, b.y, b.z});
+    }
+ 
+    m_wireVertCount = static_cast<int>(wireData.size() / 3);
+ 
+    glBindVertexArray(m_wireVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_wireVBO);
+    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(wireData.size() * sizeof(float)), wireData.data(), GL_DYNAMIC_DRAW);
+    glBindVertexArray(0);
+
+
+}
+void Renderer::drawMesh(const mat4& view, const mat4& proj)
+{   
+  
+    if(m_meshTriCount == 0)
+        return;
+    glEnable(GL_DEPTH_TEST);
+    glUseProgram(m_meshProg);
+    setUniformMat4(m_meshProg, "uView", view);
+    setUniformMat4(m_meshProg, "uProj", proj);
+
+    glBindVertexArray(m_meshVAO);
+    glDrawElements(GL_TRIANGLES, m_meshTriCount, GL_UNSIGNED_INT, nullptr);
+    glBindVertexArray(0);
+
+
+    //draw wireframe
+    glEnable(GL_POLYGON_OFFSET_LINE);
+    glPolygonOffset(-1.f, -1.f);
+ 
+    glUseProgram(m_wireProg);
+    setUniformMat4(m_wireProg, "uView", view);
+    setUniformMat4(m_wireProg, "uProj", proj);
+ 
+    glBindVertexArray(m_wireVAO);
+    glDrawArrays(GL_LINES, 0, m_wireVertCount);
+    glBindVertexArray(0);
+ 
+    glDisable(GL_POLYGON_OFFSET_LINE);
+
+
 }
 
 

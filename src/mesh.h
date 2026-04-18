@@ -30,10 +30,7 @@ struct Face
 };
 
 
-const int edgeKey(int vFrom, int vTo)
-{
-    return vFrom * 1000 + vTo; 
-}
+const int edgeKey(int vFrom, int vTo);
 class Mesh
 {
     public:

@@ -11,6 +11,8 @@ Scene::Scene() : m_cam({4.f, 8.f, -10.f}, -90.f, -20.f)
 void Scene::init()
 {
     m_renderer.init();
+    m_mesh = Mesh::makeCube();
+    m_renderer.uploadMesh(m_mesh);
 }
 void Scene::update(float dt)
 {

@@ -30,8 +30,9 @@ void Mesh::linkFaceLoop(int faceIdx, const vector<int>& heIndices)
         halfEdge& he = halfedges[heIndices[i]];
         he.face = faceIdx;
         he.next = heIndices[(i + 1) % n];
-        he.next = heIndices[(i + n - 1) % n];
+        he.prev = heIndices[(i + n - 1) % n];
     }
+    faces[faceIdx].halfedge = heIndices[0];
     
 }
 
@@ -85,7 +86,10 @@ vector<int> Mesh::faceVertices(int faceIdx) const
     });
     return vertices;
 }
-
+const int edgeKey(int vFrom, int vTo)
+{
+    return vFrom * 1000 + vTo; 
+}
 // geometry helpers
 //faceCentroid, faceNormal, computeNormals
 vec3 Mesh::faceCentroid(int faceIdx) const
