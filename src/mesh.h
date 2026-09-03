@@ -44,7 +44,6 @@ class Mesh
 
         void forEachHalfEdgeofFace(int startHe, const function<void(int)>& cb) const;
         void forEachHalfEdgeOfVertex(int vert, const function<void(int)>& cb) const;
-        
         // returns list of all vertices of a face
         vector<int> faceVertices(int faceIdx) const;
 

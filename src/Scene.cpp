@@ -21,7 +21,7 @@ void Scene::update(float dt)
 }
 void Scene::draw(int fbWidth, int fbHeight)
 {
-    const float aspect = (fbHeight > 0) ? static_cast<float>(fbWidth) / static_cast<float>(fbHeight) : 1.f; // here we use static casts as opposed to c-style casts as its type safe
+    const float aspect = (fbHeight > 0) ? static_cast<float>(fbWidth) / static_cast<float>(fbHeight) : 1.f; 
 
     glViewport(0, 0, fbWidth, fbHeight);
     glClearColor(0.12f, 0.12f, 0.14f, 1.f);

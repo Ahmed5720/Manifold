@@ -27,8 +27,8 @@ class Selector
     private:
 
     public:
-        void shoot(Ray& r, float x, float y); // creates the ray from screen pos x,y
-        bool intersect(Ray& r, Face& f, float distance); // tests intersection of ray r with face f
+        void shoot(Camera& cam, Ray& r, float x, float y); // creates the ray from screen pos x,y
+        bool intersect(Ray& r, vector<Vertex>& faceVerts, float& distance); // tests intersection of ray r with face f
         void setSelected(Face& f); // sets f to selected and changes its color too
-        bool select();   
+        bool select(Scene& scene, float mouseX, float mouseY);   
 }; 

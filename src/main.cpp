@@ -12,6 +12,8 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include "common.h"
+
 // Forward declarations of GLFW callbacks
 static void cbKey        (GLFWwindow*, int, int, int, int);
 static void cbMouseButton(GLFWwindow*, int, int, int);
@@ -32,7 +34,7 @@ GLFWwindow* initGLFW()
   //  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // required on macOS
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT,  GL_TRUE);
 
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Manifold", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Manifold", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         throw std::runtime_error("glfwCreateWindow failed");

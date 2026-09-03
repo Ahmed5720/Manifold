@@ -7,6 +7,8 @@
 
 class Scene{
     public:
+        Camera m_cam;   
+        Mesh m_mesh;
         Scene(); 
         void init();
         void update(float dt);
@@ -21,9 +23,7 @@ class Scene{
         
 
     private:
-        Camera m_cam;
         Renderer m_renderer;
-        Mesh m_mesh;
 
         float m_fpsAccum  = 0.f;
         int   m_fpsFrames = 0;
