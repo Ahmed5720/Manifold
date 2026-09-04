@@ -99,7 +99,7 @@ void Renderer::buildGrid()
     constexpr float STEP = 1.0f;
     constexpr int LINES = (HALF * 2 + 1);
     vector<float> verts; // vector of float 3 or 3 vector of size vertices * 3? 
-    verts.reserve(LINES * 4 * 2); // since we already know vector size, better to use reserve than push_back
+    verts.reserve(LINES * 4 * 2);
     for (int i = -HALF; i < HALF; i++) {
         const float t = static_cast<float>(i) * STEP;
         // Line parallel to Z
@@ -175,8 +175,9 @@ void Renderer::buildAxes()
 void Renderer::uploadMesh(const Mesh& m)
 {
     vector<float> vboData(m.vertices.size() * 6);
-    vector<uint32_t> eboData;
-    eboData.reserve(m.faces.size() * 6);
+    vector<uint32_t> eboSelectedData;
+    vector<uint32_t> eboUnselectedData;
+    // eboData.reserve(m.faces.size() * 6);
     int i = 0;
     for (int vi = 0; vi < m.vertices.size(); vi++)
     {   
@@ -190,30 +191,55 @@ void Renderer::uploadMesh(const Mesh& m)
     }
 
     for (int fi = 0; fi < m.faces.size(); fi++)
-    {
+    {   
         const auto verts = m.faceVertices(fi);
-        // fan triangulate 0,1,2 .. 0,2,3 .. 
-        for (int i = 1; i < verts.size()-1; i++)
+        if(m.faces[fi].selected)
         {
-            eboData.push_back((uint32_t)verts[0]);
-            eboData.push_back((uint32_t)verts[i]);
-            eboData.push_back((uint32_t)verts[i + 1]);
+            // fan triangulate 0,1,2 .. 0,2,3 .. 
+            for (int i = 1; i < verts.size()-1; i++)
+            {
+                eboSelectedData.push_back((uint32_t)verts[0]);
+                eboSelectedData.push_back((uint32_t)verts[i]);
+                eboSelectedData.push_back((uint32_t)verts[i + 1]);
+            }
+
+        }
+        else
+        {
+            // fan triangulate 0,1,2 .. 0,2,3 .. 
+            for (int i = 1; i < verts.size()-1; i++)
+            {
+                eboUnselectedData.push_back((uint32_t)verts[0]);
+                eboUnselectedData.push_back((uint32_t)verts[i]);
+                eboUnselectedData.push_back((uint32_t)verts[i + 1]);
+            }
+
         }
     }
 
-    m_meshTriCount = eboData.size();
-    std :: cout << "tri count " << m_meshTriCount << "\n";
+    m_meshUnselectedIdxCount = (GLsizei) eboSelectedData.size();
+    m_meshSelectedIdxCount   = (GLsizei)eboUnselectedData.size();    
+    // std :: cout << "tri count " << m_meshTriCount << "\n";
+    // concatenate: [unselected | selected]
+    std::vector<uint32_t> ebo;
+    ebo.reserve(eboUnselectedData.size() + eboSelectedData.size());
+    ebo.insert(ebo.end(), eboUnselectedData.begin(), eboUnselectedData.end());
+    ebo.insert(ebo.end(), eboSelectedData.begin(),   eboSelectedData.end());
+
     glBindVertexArray(m_meshVAO);
     glBindBuffer(GL_ARRAY_BUFFER, m_meshVBO);
-    glBufferData(GL_ARRAY_BUFFER,static_cast<GLsizeiptr>(vboData.size() * sizeof(float)), vboData.data(), GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,
+                (GLsizeiptr)(vboData.size() * sizeof(float)),
+                vboData.data(), GL_DYNAMIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_meshEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(eboData.size() * sizeof(uint32_t)), eboData.data(), GL_DYNAMIC_DRAW);
-
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                (GLsizeiptr)(ebo.size() * sizeof(uint32_t)),
+                ebo.data(), GL_DYNAMIC_DRAW);
     glBindVertexArray(0);
 
 
-     // Wireframe edges
+    // Wireframe edges
     // Emit one line segment per unique half-edge 
     vector<float> wireData;
     for (int i = 0; i < static_cast<int>(m.halfedges.size()); ++i) {
@@ -234,21 +260,38 @@ void Renderer::uploadMesh(const Mesh& m)
 
 
 }
+
+void Renderer::updateSelection(const Mesh& m)
+{   // reuploading entire mesh every time a new selection is made sounds pretty stupid.. there has to be a better way.
+    Renderer::uploadMesh(m); 
+}
 void Renderer::drawMesh(const mat4& view, const mat4& proj)
 {   
   
-    if(m_meshTriCount == 0)
+    if (m_meshUnselectedIdxCount + m_meshSelectedIdxCount == 0)
         return;
     glEnable(GL_DEPTH_TEST);
     glUseProgram(m_meshProg);
     setUniformMat4(m_meshProg, "uView", view);
     setUniformMat4(m_meshProg, "uProj", proj);
 
-    glBindVertexArray(m_meshVAO);
-    glDrawElements(GL_TRIANGLES, m_meshTriCount, GL_UNSIGNED_INT, nullptr);
+    glBindVertexArray(m_meshVAO);    
+    if (m_meshUnselectedIdxCount) {
+        setUniformVec3(m_meshProg, "BASE_COLOUR", vec3(0.78f, 0.78f, 0.80f));
+        glDrawElements(GL_TRIANGLES, m_meshUnselectedIdxCount,
+            GL_UNSIGNED_INT, nullptr);
+        }
+        
+    if (m_meshSelectedIdxCount) {
+            const auto byteOffset =
+            (uintptr_t)m_meshUnselectedIdxCount * sizeof(uint32_t);
+            setUniformVec3(m_meshProg, "BASE_COLOUR", vec3(1.00f, 0.55f, 0.12f));
+            glDrawElements(GL_TRIANGLES, m_meshSelectedIdxCount,
+                GL_UNSIGNED_INT, (const void*)byteOffset);
+                
+    }
     glBindVertexArray(0);
-
-
+ 
     //draw wireframe
     glEnable(GL_POLYGON_OFFSET_LINE);
     glPolygonOffset(-1.f, -1.f);

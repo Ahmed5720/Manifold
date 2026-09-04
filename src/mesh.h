@@ -46,7 +46,7 @@ class Mesh
         void forEachHalfEdgeOfVertex(int vert, const function<void(int)>& cb) const;
         // returns list of all vertices of a face
         vector<int> faceVertices(int faceIdx) const;
-
+        vector<Vertex> faceVerts(int faceIdx) const; // lazy
         // computes normals of all vertices as an area weighted average of face normals
         void computeNormals();
 

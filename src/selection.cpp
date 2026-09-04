@@ -10,8 +10,8 @@ void Selector::shoot(Camera& cam, Ray& r, float mouseX, float mouseY)
 {   
     const float aspect = (HEIGHT > 0) ? static_cast<float>(WIDTH) / static_cast<float>(HEIGHT) : 1.f; 
 
-    float ndcX = mouseX / WIDTH;
-    float ndcY = mouseY / HEIGHT;
+    float ndcX = 2.0f * mouseX / WIDTH - 1.0;
+    float ndcY = 2.0f * mouseY / HEIGHT - 1.0; // flip y?
 
     glm::vec4 nearPoint = glm::vec4(ndcX, ndcY, -1.0, 1.0); 
     glm::vec4 farPoint = glm::vec4(ndcX, ndcY, 1.0, 1.0);
@@ -23,8 +23,8 @@ void Selector::shoot(Camera& cam, Ray& r, float mouseX, float mouseY)
     glm::vec4 worldNear =  inverseViewProjection * nearPoint;
     glm::vec4 worldFar  = inverseViewProjection * farPoint;
 
-    worldNear /= worldNear.z;
-    worldFar /= worldFar.z;
+    worldNear /= worldNear.w;
+    worldFar /= worldFar.w;
 
     r.origin = worldNear;
     r.dir = normalize(worldFar - worldNear); 
@@ -41,6 +41,8 @@ bool Selector::intersect(Ray& r, vector<Vertex>& faceVerts, float& distance)
     vec3 A = faceVerts[0].position;
     vec3 Po = r.origin;
     vec3 v = r.dir;
+    vec3 n = (cross(faceVerts[1].position - faceVerts[0].position, faceVerts[2].position - faceVerts[1].position));
+    n /= sqrt(dot(n,n));
     vec3 n = (faceVerts[0].normal + faceVerts[1].normal + faceVerts[2].normal) / 3.0f;
     float t = dot(A - Po, n) / (dot(v, n));
     if(t > 0.0)
@@ -52,20 +54,32 @@ bool Selector::intersect(Ray& r, vector<Vertex>& faceVerts, float& distance)
         |    |
         3 -- 2
         */
-        vector<vec3> edges = {faceVerts[1].position - faceVerts[0].position, faceVerts[2].position - faceVerts[1].position,
-             faceVerts[3].position - faceVerts[2].position, faceVerts[0].position - faceVerts[3].position};
+        // vector<vec3> edges = {faceVerts[1].position - faceVerts[0].position, faceVerts[2].position - faceVerts[1].position,
+        //      faceVerts[3].position - faceVerts[2].position, faceVerts[0].position - faceVerts[3].position};
         
-        for (vec3 e : edges)
-            if(dot(hit, e) < 0.0)
-                return false;
+        // for (vec3 e : edges)
+        //     if(dot(hit, e) < 0.0)
+        //         return false;
+
+        const size_t N = faceVerts.size();
+        for (size_t i = 0; i < N; ++i) {
+            const vec3& a = faceVerts[i].position;
+            const vec3& b = faceVerts[(i + 1) % N].position;
+            if (dot(cross(b - a, hit - a), n) < 0.0f) return false;
+        }
+        distance = glm::distance(hit, Po);         
         return true;
-    } 
+    }
+    
+    return false;
 
 
 }
 void Selector::setSelected(Face& f)
 {
-    
+    // f.selected = true;
+    // scene.m_renderer.updateSelection();
+
 }
 bool Selector::select(Scene& scene, float x, float y)
 {
@@ -80,8 +94,8 @@ bool Selector::select(Scene& scene, float x, float y)
     shoot(cam, r, x, y);
     // for all o in objects
         for (int i = 0; i < m.faces.size(); i++)
-            vector<int> faceVerts = m.faceVertices(i);
-            // get vertices from vertices indices first to pass to intersect...
+        {
+            vector<Vertex> faceVerts = m.faceVerts(i);
             intersected = intersect(r, faceVerts, t);
             std::cout << "intersected\n";
             if(intersected && t < bestDist)
@@ -89,7 +103,11 @@ bool Selector::select(Scene& scene, float x, float y)
                 bestDist = t;
                 bestFace = f;
             }
+        }
     if(intersected)
-        setSelected(bestFace);
+    {
+        bestFace.selected = !bestFace.selected;
+        scene.m_renderer.updateSelection(m); 
+    }
     return intersected;
 } 

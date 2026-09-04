@@ -7,8 +7,8 @@ out vec4 fragColour;
 //uniform vec3 uCameraPos;
 
 
+uniform vec3  BASE_COLOUR = vec3(0.55, 0.62, 0.72); 
 const vec3  LIGHT_DIR  = normalize(vec3(0.4, 1.0, 0.6));
-const vec3  BASE_COLOUR = vec3(0.55, 0.62, 0.72); 
 const float AMBIENT    = 0.25;
 
 void main() {

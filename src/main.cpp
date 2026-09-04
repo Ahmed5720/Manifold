@@ -14,6 +14,8 @@
 
 #include "common.h"
 
+#include "selection.h"
+
 // Forward declarations of GLFW callbacks
 static void cbKey        (GLFWwindow*, int, int, int, int);
 static void cbMouseButton(GLFWwindow*, int, int, int);
@@ -80,6 +82,7 @@ int main() {
     Scene scene;
     scene.init();
 
+    Selector selector;
     // Store scene pointer in window so callbacks can reach it
     glfwSetWindowUserPointer(window, &scene);
     glfwSetKeyCallback        (window, cbKey);

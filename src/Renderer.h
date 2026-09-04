@@ -19,6 +19,7 @@ class Renderer{
         void drawAxes(const mat4& view, const glm::mat4& proj);
         void drawMesh(const mat4& view, const mat4& proj);
         void uploadMesh(const Mesh&  mesh);
+        void updateSelection(const Mesh& mesh);
     private:
         uint32_t compileShader (uint32_t type, const std::string& src);
         uint32_t linkProgram   (uint32_t vert, uint32_t frag);
@@ -50,5 +51,7 @@ class Renderer{
         uint32_t m_wireVBO      = 0;  // edge line endpoints
         uint32_t m_wireProg     = 0;
         int      m_meshTriCount = 0;
+        GLsizei  m_meshUnselectedIdxCount = 0;
+        GLsizei  m_meshSelectedIdxCount   = 0;
         int      m_wireVertCount = 0;
     };

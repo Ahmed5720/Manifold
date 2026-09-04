@@ -86,6 +86,18 @@ vector<int> Mesh::faceVertices(int faceIdx) const
     });
     return vertices;
 }
+
+vector<Vertex> Mesh::faceVerts(int faceIdx) const
+{
+    vector<Vertex> vertices;
+    int startHe = faces[faceIdx].halfedge;
+    forEachHalfEdgeofFace(startHe, [&](int heIndex)
+    {
+        vertices.push_back(vertices[halfedges[heIndex].vertex]);        
+    });
+    return vertices;
+}
+
 const int edgeKey(int vFrom, int vTo)
 {
     return vFrom * 1000 + vTo; 
