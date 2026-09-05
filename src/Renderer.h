@@ -51,7 +51,7 @@ class Renderer{
         uint32_t m_wireVBO      = 0;  // edge line endpoints
         uint32_t m_wireProg     = 0;
         int      m_meshTriCount = 0;
-        GLsizei  m_meshUnselectedIdxCount = 0;
-        GLsizei  m_meshSelectedIdxCount   = 0;
+        int  m_meshUnselectedIdxCount = 0;
+        int  m_meshSelectedIdxCount   = 0;
         int      m_wireVertCount = 0;
     };

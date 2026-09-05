@@ -217,9 +217,9 @@ void Renderer::uploadMesh(const Mesh& m)
         }
     }
 
-    m_meshUnselectedIdxCount = (GLsizei) eboSelectedData.size();
-    m_meshSelectedIdxCount   = (GLsizei)eboUnselectedData.size();    
-    // std :: cout << "tri count " << m_meshTriCount << "\n";
+    m_meshUnselectedIdxCount = (GLsizei) eboUnselectedData.size();
+    m_meshSelectedIdxCount   = (GLsizei)eboSelectedData.size();    
+    std :: cout << "selected tri count " << m_meshSelectedIdxCount << "unselected "<< m_meshUnselectedIdxCount << "\n";
     // concatenate: [unselected | selected]
     std::vector<uint32_t> ebo;
     ebo.reserve(eboUnselectedData.size() + eboSelectedData.size());

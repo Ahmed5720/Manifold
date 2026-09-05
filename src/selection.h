@@ -14,7 +14,6 @@ so lets have 3 routines
     we also need a ray struct
 */
 
-
 struct Ray
 {
     glm::vec3 origin;
@@ -30,5 +29,5 @@ class Selector
         void shoot(Camera& cam, Ray& r, float x, float y); // creates the ray from screen pos x,y
         bool intersect(Ray& r, vector<Vertex>& faceVerts, float& distance); // tests intersection of ray r with face f
         void setSelected(Face& f); // sets f to selected and changes its color too
-        bool select(Scene& scene, float mouseX, float mouseY);   
+        //bool select(Scene& scene, float mouseX, float mouseY);  
 }; 

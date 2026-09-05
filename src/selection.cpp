@@ -1,7 +1,6 @@
 #include "selection.h"
 #include "common.h"
 
-
 /*
     to shoot a ray from a given pixel on camera we get the pixel pos divide by max w,h
     this gives us a valid x,y, but where does depth come from? depth can be calculated from the view frustums near and far bounds
@@ -28,7 +27,7 @@ void Selector::shoot(Camera& cam, Ray& r, float mouseX, float mouseY)
 
     r.origin = worldNear;
     r.dir = normalize(worldFar - worldNear); 
-    std::cout << "launched ray at %d , %d \n" << mouseX << mouseY; 
+    std::cout << "launched ray at" << mouseX << " " << mouseY << "\n"; 
 
 
 }
@@ -43,7 +42,7 @@ bool Selector::intersect(Ray& r, vector<Vertex>& faceVerts, float& distance)
     vec3 v = r.dir;
     vec3 n = (cross(faceVerts[1].position - faceVerts[0].position, faceVerts[2].position - faceVerts[1].position));
     n /= sqrt(dot(n,n));
-    vec3 n = (faceVerts[0].normal + faceVerts[1].normal + faceVerts[2].normal) / 3.0f;
+    //vec3 n = (faceVerts[0].normal + faceVerts[1].normal + faceVerts[2].normal) / 3.0f;
     float t = dot(A - Po, n) / (dot(v, n));
     if(t > 0.0)
     {   
@@ -81,33 +80,33 @@ void Selector::setSelected(Face& f)
     // scene.m_renderer.updateSelection();
 
 }
-bool Selector::select(Scene& scene, float x, float y)
-{
-    Ray r;
-    Mesh& m = scene.m_mesh;
-    Camera& cam = scene.m_cam;
-    float bestDist = MAX_SELECTION_DIST;
-    Face bestFace;
-    Face f; 
-    bool intersected = false; 
-    float t = 0;
-    shoot(cam, r, x, y);
-    // for all o in objects
-        for (int i = 0; i < m.faces.size(); i++)
-        {
-            vector<Vertex> faceVerts = m.faceVerts(i);
-            intersected = intersect(r, faceVerts, t);
-            std::cout << "intersected\n";
-            if(intersected && t < bestDist)
-            {
-                bestDist = t;
-                bestFace = f;
-            }
-        }
-    if(intersected)
-    {
-        bestFace.selected = !bestFace.selected;
-        scene.m_renderer.updateSelection(m); 
-    }
-    return intersected;
-} 
+// bool Selector::select(Scene& scene, float x, float y)
+// {
+//     Ray r;
+//     Mesh& m = scene.m_mesh;
+//     Camera& cam = scene.m_cam;
+//     float bestDist = MAX_SELECTION_DIST;
+//     Face bestFace;
+//     Face f; 
+//     bool intersected = false; 
+//     float t = 0;
+//     shoot(cam, r, x, y);
+//     // for all o in objects
+//         for (int i = 0; i < m.faces.size(); i++)
+//         {
+//             vector<Vertex> faceVerts = m.faceVerts(i);
+//             intersected = intersect(r, faceVerts, t);
+//             std::cout << "intersected\n";
+//             if(intersected && t < bestDist)
+//             {
+//                 bestDist = t;
+//                 bestFace = f;
+//             }
+//         }
+//     if(intersected)
+//     {
+//         bestFace.selected = !bestFace.selected;
+//         scene.m_renderer.updateSelection(m); 
+//     }
+//     return intersected;
+// } 

@@ -1,9 +1,4 @@
 #include <iostream>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include <stdexcept>
 #include <cstdio>
 #include "Scene.h"
@@ -12,9 +7,8 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-#include "common.h"
 
-#include "selection.h"
+
 
 // Forward declarations of GLFW callbacks
 static void cbKey        (GLFWwindow*, int, int, int, int);
@@ -80,9 +74,8 @@ int main() {
     initIMGUI(window); 
 
     Scene scene;
-    scene.init();
+    scene.init(window);
 
-    Selector selector;
     // Store scene pointer in window so callbacks can reach it
     glfwSetWindowUserPointer(window, &scene);
     glfwSetKeyCallback        (window, cbKey);

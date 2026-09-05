@@ -1,16 +1,17 @@
 #include "scene.h"
-#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <imgui.h>
 #include <iostream>
+#include "selection.h"
 Scene::Scene() : m_cam({4.f, 8.f, -10.f}, -90.f, -20.f)
 {}
 // {   
 //     Scene.m_cam({0.f, 8.f, 20.f}, -90.f, -20.f) // initialze camera position, Feild of view, and ..? 
 //     Scene.scene_color = {0.12f, 0.12f, 0.14f, 1.f};
 // } 
-void Scene::init()
-{
+void Scene::init(GLFWwindow* window)
+{   
+    m_window = window;
     m_renderer.init();
     m_mesh = Mesh::makeCube();
     m_renderer.uploadMesh(m_mesh);
@@ -41,7 +42,6 @@ void Scene::draw(int fbWidth, int fbHeight)
 
 void Scene::drawUI(float dt) {
 
-    std :: cout << "showing ui\n";
     // Smooth FPS over ~30 frames to avoid jitter
     m_fpsAccum  += (dt > 0.f ? 1.f / dt : 0.f);
     m_fpsFrames += 1;
@@ -93,6 +93,15 @@ void Scene::onKey(int key, int action, int mods) {
  
 void Scene::onMouseButton(int button, int action, int mods) {
     m_cam.onMouseButton(button, action, mods);
+    if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+        double mouseX, mouseY;
+        glfwGetCursorPos(m_window, &mouseX, &mouseY);
+        if(select(mouseX, mouseY))
+            std::cout<<" selected\n";
+        else
+            std::cout<<"nothing to select\n";
+    }
 }
  
 void Scene::onMouseMove(double xpos, double ypos) {
@@ -106,3 +115,34 @@ void Scene::onScroll(double xoffset, double yoffset) {
 void Scene::onResize(int /*width*/, int /*height*/) {
     // Nothing to do yet; viewport is set each frame in draw()
 }
+
+bool Scene::select(float x, float y)
+{
+    Ray r;
+    Mesh& m = m_mesh;
+    Camera& cam = m_cam;
+    float bestDist = MAX_SELECTION_DIST;
+    int bestFace = -1;
+    bool intersected = false; 
+    float t = 0;
+    m_selector->shoot(cam, r, x, y);
+    // for all o in objects
+        for (int i = 0; i < m.faces.size(); i++)
+        {
+            vector<Vertex> faceVerts = m.faceVerts(i);
+            if(m_selector->intersect(r, faceVerts, t))
+                intersected = true;
+            std::cout << "intersected?" << intersected << "\n";
+            if(intersected && t < bestDist)
+            {
+                bestDist = t;
+                bestFace = i;
+            }
+        }
+    if(intersected)
+    {
+        m.faces[bestFace].selected = !m.faces[bestFace].selected;
+        m_renderer.updateSelection(m); 
+    }
+    return intersected;
+} 
