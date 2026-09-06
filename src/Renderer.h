@@ -19,7 +19,8 @@ class Renderer{
         void drawAxes(const mat4& view, const glm::mat4& proj);
         void drawMesh(const mat4& view, const mat4& proj);
         void uploadMesh(const Mesh&  mesh);
-        void updateSelection(const Mesh& mesh);
+        void updateSelection(const Mesh& m, const vec3& hitPoint, const mat4& view, const mat4& proj);
+        void drawDebugPoint(const mat4& view, const mat4& proj);
     private:
         uint32_t compileShader (uint32_t type, const std::string& src);
         uint32_t linkProgram   (uint32_t vert, uint32_t frag);
@@ -38,6 +39,11 @@ class Renderer{
         uint32_t m_axesVBO  = 0;  // positions
         uint32_t m_axesCBO  = 0;  // colours
         uint32_t m_axesProg = 0;
+
+        uint32_t m_debugVAO = 0;
+        uint32_t m_debugVBO = 0;
+        uint32_t m_debugProg = 0;
+        vec3 m_debugPoint;
     
         void buildGrid();
         void buildAxes();

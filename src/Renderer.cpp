@@ -35,6 +35,7 @@ void Renderer::init()
     m_axesProg = loadProgram("shaders/axes.vert", "shaders/axes.frag");
     m_meshProg = loadProgram("shaders/mesh.vert", "shaders/mesh.frag");
     m_wireProg = loadProgram("shaders/wire.vert", "shaders/wire.frag");
+    m_debugProg= loadProgram("shaders/debug.vert", "shaders/debug.frag");
     buildGrid();
     buildAxes();
 
@@ -62,6 +63,25 @@ void Renderer::init()
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
     glBindVertexArray(0);
+
+    // debug stuff
+    glGenVertexArrays(1, &m_debugVAO);
+    glGenBuffers(1, &m_debugVBO);
+
+
+    glBindVertexArray(m_debugVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_debugVBO);
+    
+    // glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(glm::vec3), positions.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 100 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3),reinterpret_cast<void*>(0));
+    glBindVertexArray(0);
+    
+
+
+
 }
 
 void Renderer::drawGrid(const mat4& view, const mat4& proj)
@@ -261,9 +281,33 @@ void Renderer::uploadMesh(const Mesh& m)
 
 }
 
-void Renderer::updateSelection(const Mesh& m)
+void Renderer::updateSelection(const Mesh& m, const vec3& hitPoint, const mat4& view, const mat4& proj)
 {   // reuploading entire mesh every time a new selection is made sounds pretty stupid.. there has to be a better way.
     Renderer::uploadMesh(m); 
+    m_debugPoint = hitPoint;
+    //Renderer::drawDebugPoint(hitPoint, view, proj);
+    
+}
+void Renderer::drawDebugPoint(const mat4& view, const mat4& proj)
+{
+
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    glDisable(GL_DEPTH_TEST);
+    glBindVertexArray(m_debugVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_debugVBO);
+    
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3), &m_debugPoint, GL_DYNAMIC_DRAW);
+    glUseProgram(m_debugProg);
+    setUniformMat4(m_debugProg, "uView", view);
+    setUniformMat4(m_debugProg, "uProj", proj);
+    glDrawArrays(GL_POINTS, 0, 1);
+
+    // cout << "Drawing point at: " << m_debugPoint.x << ", " << m_debugPoint.y << ", " << m_debugPoint.z << "\n";
+    glEnable(GL_DEPTH_TEST);
+    // exit
+    glUseProgram(0);    
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 }
 void Renderer::drawMesh(const mat4& view, const mat4& proj)
 {   

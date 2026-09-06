@@ -26,11 +26,18 @@ class Scene{
         void onScroll      (double xoffset, double yoffset);
         void onResize      (int width, int height);
         bool select(float x, float y);
+        void translate(float dir);
         
 
     private:
         Selector* m_selector;
         GLFWwindow* m_window; // not safe
+        glm::mat4 view;
+        glm::mat4 proj;
+        int selectedCount = 0;
+        int activeAxis = 0; // 0,1,2 for x,y,z respectively.
+        float fbW;
+        float fbH;
         float m_fpsAccum  = 0.f;
         int   m_fpsFrames = 0;
         float m_smoothFps = 0.f;
