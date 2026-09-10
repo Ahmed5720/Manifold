@@ -9,6 +9,7 @@
 // calls renderer.draw() methods
 
 class Selector;
+class Extruder;
 class Scene{
     public:
         Camera m_cam;   
@@ -31,6 +32,8 @@ class Scene{
 
     private:
         Selector* m_selector;
+        Extruder* m_extruder = nullptr; // here we use pointers because we actually dont know what extrudor or selector are
+        // as we only know them as names, this is to resolve a cyclic dependency problem between scene and selection / extrusion
         GLFWwindow* m_window; // not safe
         glm::mat4 view;
         glm::mat4 proj;

@@ -60,6 +60,10 @@ bool Selector::intersect(Ray& r, vector<Vertex>& faceVerts, float& distance, vec
         //     if(dot(hit, e) < 0.0)
         //         return false;
 
+        // one other fancy way i could imagine would be to draw a ray on the intersection plane from the intersection point of the plane towards an a vertex of the triangle
+        // now if that ray intersects any OTHER edge of the triangle in front of it then it must be outside of it, else then its inside of it.
+        // how do we check intersection of two rays on a plane? r1 = o + dt , r2 = o + dt and solve for t? sm like dat. 
+
         const size_t N = faceVerts.size();
         for (size_t i = 0; i < N; ++i) {
             const vec3& a = faceVerts[i].position;

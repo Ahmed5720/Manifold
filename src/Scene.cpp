@@ -3,6 +3,7 @@
 #include <imgui.h>
 #include <iostream>
 #include "selection.h"
+#include "extrude.h"
 Scene::Scene() : m_cam({4.f, 8.f, -10.f}, -90.f, -20.f)
 {}
 // {   
@@ -15,6 +16,8 @@ void Scene::init(GLFWwindow* window)
     m_renderer.init();
     m_mesh = Mesh::makeCube();
     m_renderer.uploadMesh(m_mesh);
+    m_selector = new Selector();
+    m_extruder = new Extruder();
 }
 void Scene::update(float dt)
 {
@@ -112,6 +115,21 @@ void Scene::onKey(int key, int action, int mods) {
         activeAxis = 1;
     if(key == GLFW_KEY_Z)
         activeAxis = 2;
+    int selection = -1;
+    if(key == GLFW_KEY_L)
+    {   
+        selection = m_selector->activeSelectedFace;
+        if(selection != 0)
+        {
+            int newFace = m_extruder->extrude(*this, selection);
+            m_mesh.faces[selection].selected = false;
+            m_mesh.faces[newFace].selected = true; 
+            m_renderer.uploadMesh(m_mesh);
+            selection = -1; //
+            cout << "extruded\n"; 
+        }
+    }
+
         
 }
  
@@ -187,6 +205,7 @@ bool Scene::select(float x, float y)
     {   
         bool old = m.faces[bestFace].selected;
         m.faces[bestFace].selected = !old;
+        m_selector->activeSelectedFace = bestFace;
         if(!old)
             selectedCount++;
         else
