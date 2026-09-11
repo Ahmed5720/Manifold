@@ -22,6 +22,7 @@ int Mesh::addHalfEdge()
     halfedges.push_back(halfEdge{});
     return halfedges.size()-1;
 }
+// links all 4 halfedges to the face they belong to, must be called after construction of a new face
 void Mesh::linkFaceLoop(int faceIdx, const vector<int>& heIndices)
 {   
     int n = heIndices.size();
