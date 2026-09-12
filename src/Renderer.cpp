@@ -261,6 +261,7 @@ void Renderer::uploadMesh(const Mesh& m)
 
     // Wireframe edges
     // Emit one line segment per unique half-edge 
+    glLineWidth(2.0);
     vector<float> wireData;
     for (int i = 0; i < static_cast<int>(m.halfedges.size()); ++i) {
         const halfEdge& he = m.halfedges[i];
@@ -270,7 +271,7 @@ void Renderer::uploadMesh(const Mesh& m)
         const vec3& b = m.vertices[m.halfedges[he.next].vertex].position;
         wireData.insert(wireData.end(), {a.x, a.y, a.z, b.x, b.y, b.z});
     }
- 
+    
     m_wireVertCount = static_cast<int>(wireData.size() / 3);
  
     glBindVertexArray(m_wireVAO);

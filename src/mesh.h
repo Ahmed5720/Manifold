@@ -27,6 +27,7 @@ struct Face
 {
     bool selected = false;
     int halfedge = -1; // stores any half edge belonging to the face.
+    int alive = true; // currently used when extruding, this face's half edges are reused however it should no longer exist
 };
 
 

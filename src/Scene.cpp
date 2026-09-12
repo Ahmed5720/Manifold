@@ -116,10 +116,10 @@ void Scene::onKey(int key, int action, int mods) {
     if(key == GLFW_KEY_Z)
         activeAxis = 2;
     int selection = -1;
-    if(key == GLFW_KEY_L)
+    if(key == GLFW_KEY_L && action == GLFW_PRESS)
     {   
         selection = m_selector->activeSelectedFace;
-        if(selection != 0)
+        if(selection != -1)
         {
             int newFace = m_extruder->extrude(*this, selection);
             m_mesh.faces[selection].selected = false;

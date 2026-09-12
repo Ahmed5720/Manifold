@@ -33,4 +33,4 @@ a mini blender if you will..
 - Face Subdivide
 
 
-![Alt text](media/thumb2.png "101")
+![Alt text](media/thumb3.png "101")
