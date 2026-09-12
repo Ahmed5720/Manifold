@@ -28,6 +28,7 @@ class Scene{
         void onResize      (int width, int height);
         bool select(float x, float y);
         void translate(float dir);
+        void deselectAll();
         
 
     private:
@@ -44,5 +45,6 @@ class Scene{
         float m_fpsAccum  = 0.f;
         int   m_fpsFrames = 0;
         float m_smoothFps = 0.f;
+    
 
 };

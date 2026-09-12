@@ -21,12 +21,19 @@ class Renderer{
         void uploadMesh(const Mesh&  mesh);
         void updateSelection(const Mesh& m, const vec3& hitPoint, const mat4& view, const mat4& proj);
         void drawDebugPoint(const mat4& view, const mat4& proj);
+        array<int, 3> emitTriangle(int a, int b, int c, const vec3& faceN, vector<float>& vboData,const vector<Vertex>& vertices);
+        bool solid = true;
+        bool wireframe = true;
+        bool axis = true;
+        bool grid = true;
+        bool shaded = true;
     private:
         uint32_t compileShader (uint32_t type, const std::string& src);
         uint32_t linkProgram   (uint32_t vert, uint32_t frag);
         uint32_t loadProgram   (const std::string& vertPath, const std::string& fragPath);
         void     setUniformMat4(uint32_t prog, const char* name, const mat4& m);
         void     setUniformVec3(uint32_t prog, const char* name, vec3 v);
+        void setUniform1i(uint32_t prog, const char* name, int i);
 
         // grid
         uint32_t m_gridVAO   = 0;
@@ -60,4 +67,7 @@ class Renderer{
         int  m_meshUnselectedIdxCount = 0;
         int  m_meshSelectedIdxCount   = 0;
         int      m_wireVertCount = 0;
+
+
+        
     };

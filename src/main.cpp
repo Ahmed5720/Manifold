@@ -9,7 +9,6 @@
 
 
 
-
 // Forward declarations of GLFW callbacks
 static void cbKey        (GLFWwindow*, int, int, int, int);
 static void cbMouseButton(GLFWwindow*, int, int, int);
@@ -71,11 +70,10 @@ int main() {
 
     GLFWwindow* window = initGLFW();
     initGlad();
-    initIMGUI(window); 
-
+    
     Scene scene;
     scene.init(window);
-
+    
     // Store scene pointer in window so callbacks can reach it
     glfwSetWindowUserPointer(window, &scene);
     glfwSetKeyCallback        (window, cbKey);
@@ -83,7 +81,8 @@ int main() {
     glfwSetCursorPosCallback  (window, cbMouseMove);
     glfwSetScrollCallback     (window, cbScroll);
     glfwSetFramebufferSizeCallback(window, cbResize);
-
+    
+    initIMGUI(window); 
     double prevTime = glfwGetTime();
     // main loop
     while (!glfwWindowShouldClose(window)) {
@@ -103,7 +102,7 @@ int main() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-
+        
         scene.update(dt);
         scene.draw(fbW, fbH);
         scene.drawUI(dt);
@@ -130,18 +129,28 @@ static Scene* getScene(GLFWwindow* w) {
 }
 
 static void cbKey(GLFWwindow* w, int key, int /*scan*/, int action, int mods) {
+    if(ImGui::GetIO().WantCaptureKeyboard)
+            return;
     getScene(w)->onKey(key, action, mods);
 }
 static void cbMouseButton(GLFWwindow* w, int btn, int action, int mods) {
+    if(ImGui::GetIO().WantCaptureMouse)
+            return;
     getScene(w)->onMouseButton(btn, action, mods);
 }
 static void cbMouseMove(GLFWwindow* w, double x, double y) {
+    if(ImGui::GetIO().WantCaptureMouse)
+            return;
     getScene(w)->onMouseMove(x, y);
 }
 static void cbScroll(GLFWwindow* w, double xo, double yo) {
+    if(ImGui::GetIO().WantCaptureMouse)
+            return;
     getScene(w)->onScroll(xo, yo);
 }
 static void cbResize(GLFWwindow* w, int width, int height) {
+    if(ImGui::GetIO().WantCaptureMouse)
+            return;
     getScene(w)->onResize(width, height);
 }
 

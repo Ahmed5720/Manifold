@@ -2,5 +2,5 @@
 out vec4 fragColour;
 
 void main() {
-    fragColour = vec4(0.1, 0.9, 0.1, 1.0);  // bright white-grey edges
+    fragColour = vec4(1.0, 0.6, 0.07, 1.0); 
 }

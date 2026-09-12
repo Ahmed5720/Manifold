@@ -35,13 +35,13 @@ void Scene::draw(int fbWidth, int fbHeight)
     view = m_cam.viewMatrix();
     proj = m_cam.projMatrix(aspect);
 
-    m_renderer.drawGrid(view, proj);
+    if(m_renderer.grid)
+        m_renderer.drawGrid(view, proj);
     
     m_renderer.drawMesh(view, proj);
     
-    // no depth test for axis, always on top
-    m_renderer.drawAxes(view, proj);
-
+    if(m_renderer.axis)
+        m_renderer.drawAxes(view, proj);
     m_renderer.drawDebugPoint(view,proj);
 
 }
@@ -59,7 +59,7 @@ void Scene::drawUI(float dt) {
  
     // Anchor to the top-left corner with a small margin, no user resize/move
     ImGui::SetNextWindowPos ({10.f, 10.f}, ImGuiCond_Always);
-    ImGui::SetNextWindowSize({220.f, 0.f}, ImGuiCond_Always); // height = auto
+    ImGui::SetNextWindowSize({320.f, 0.f}, ImGuiCond_Always); // height = auto
     ImGui::Begin("Stats", nullptr,
                  ImGuiWindowFlags_NoResize        |
                  ImGuiWindowFlags_NoMove          |
@@ -81,6 +81,11 @@ void Scene::drawUI(float dt) {
     ImGui::Text("Faces      %d", numFaces);
     char axis = activeAxis == 0? 'X' : activeAxis == 1? 'Y' : activeAxis == 2? 'Z' : 'U'; 
     ImGui::Text("Active Translation Axis %c", axis);
+    ImGui::Checkbox("WireFrame", &m_renderer.wireframe);
+    ImGui::Checkbox("Solid", &m_renderer.solid);
+    ImGui::Checkbox("Show Grid", &m_renderer.grid);
+    ImGui::Checkbox("Show Axis", &m_renderer.axis);
+    ImGui::Checkbox("Shaded", &m_renderer.shaded);
     //ImGui::Text("Triangles  %d", numTris);
     ImGui::Separator();
  
@@ -176,6 +181,11 @@ void Scene::onResize(int /*width*/, int /*height*/) {
     //  viewport is set each frame in draw()
 }
 
+void Scene::deselectAll()
+{
+    for (Face& f : m_mesh.faces)
+        f.selected = false;
+}
 bool Scene::select(float x, float y)
 {
     Ray r;
@@ -203,6 +213,8 @@ bool Scene::select(float x, float y)
         }
     if(intersected)
     {   
+        
+        deselectAll(); // for simplicity, for now only one face can be selected at a time
         bool old = m.faces[bestFace].selected;
         m.faces[bestFace].selected = !old;
         m_selector->activeSelectedFace = bestFace;

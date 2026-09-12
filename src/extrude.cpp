@@ -36,12 +36,6 @@ int Extruder::extrude(Scene& scene, int faceIdx)
     vec3 fnorm = m.faceNormal(faceIdx);
     vector<int> oldVerts = m.faceVertices(faceIdx); 
 
-    // there's no reason to assume this is the actual order faceVerts gets vertices by 
-    // starting at face's half edge's vertex, whichever that vertex is.
-    // vec3 uln = m.vertices[verts[0]].position + offset * fnorm; // upper left new vert
-    // vec3 dln = m.vertices[verts[1]].position + offset * fnorm;
-    // vec3 drn = m.vertices[verts[2]].position + offset * fnorm;
-    // vec3 urn = m.vertices[verts[3]].position + offset * fnorm;
 
     // 1. grab oldFace data
 
@@ -133,102 +127,13 @@ int Extruder::extrude(Scene& scene, int faceIdx)
     */
     for (int i = 0; i < 4; i++)
     {   
-        int up = upHalfEdges[(i+1) % 4];
-        int down = downHalfEdges[i];
+        int up = upHalfEdges[i];
+        int down = downHalfEdges[(i+1) % 4];
         m.halfedges[up].twin = down;
         m.halfedges[down].twin = up;
     }
 
-
-    // // we need to reset face's half edges to null so that they stop being paired
-    // // so the new side faces can pair their half edges with the old edges
-    // // i wonder if that would work
-
-    
-    // // store he indices of deleted face since we could reuse
-    // // them later on the sidefaces. how do we identify which side face's half edge?
-    // int h0 = m.vertices[verts[0]].halfedge;
-    // int h1 = m.vertices[verts[1]].halfedge;
-    // int h2 = m.vertices[verts[2]].halfedge;
-    // int h3 = m.vertices[verts[3]].halfedge;
-    
-    // // reset half edges
-    // // should we access each halfedge, get its twin, access that half edge (the twin) then set its twin to -1?
-    // for (int i = 0; i < 4; i++)
-    //     m.vertices[verts[i]].halfedge = -1;
-    
-
-
-    // // should we delete these 4 vertices? we no longer need anything from that face i believe
-    // // but deleting a vertex messes with the indices of the others? 
-
-    // f.halfedge = -1;
-
-    // int uloi = verts[0]; // upper left old index: u l o i
-    // int dloi = verts[1];
-    // int droi = verts[2];
-    // int uroi = verts[3];
-    
-    // int ulni = m.addVertex(uln); // upper left new index: u l n i  
-    // int dlni = m.addVertex(dln);
-    // int drni = m.addVertex(drn); 
-    // int urni = m.addVertex(urn);
-    
-    // const int faceVerts[5][4] = 
-    // {
-    //     {dlni, drni, urni, ulni}, // 1. new face (head)
-    //     {droi, dloi, dlni, drni}, // 2. bottom connecting face
-    //     {uloi, dloi, dlni, ulni}, // 3. right connecting face
-    //     {uroi, droi, drni, urni}, // 4. left connecting face
-    //     {uroi, uloi, ulni, urni}  // 5. top connecting face
-    // }; 
-
-    // int head = -1;
-    // unordered_map <int, int> edgeMap;
-    // for (int fi = 0; fi < 5; fi++)
-    // {   
-    //     const int faceIdx = m.addface();
-    //     if(head == -1) // head is the first face
-    //         head = faceIdx;
-    //     vector<int> heLoop;
-    //     heLoop.reserve(4);
-    //     for (int ei = 0; ei < 4; ei++)
-    //     {
-    //         const int vFrom = faceVerts[fi][ei];
-    //         const int vTo   = faceVerts[fi][(ei+1) % 4];
-
-    //         const int hIdx = m.addHalfEdge();
-    //         m.halfedges[hIdx].vertex = vFrom;
-
-    //         if (m.vertices[vFrom].halfedge == -1)
-    //             m.vertices[vFrom].halfedge = hIdx;
-    //         heLoop.push_back(hIdx);
-            
-    //         // saves the edge into the edge map so we can stitch twins later
-    //         edgeMap[edgeKey(vFrom, vTo)] = hIdx;
-    //     }
-
-    //     m.linkFaceLoop(faceIdx, heLoop);
-    // }
-
-
-    // // finally stitching half edges by finding each twin in the edgemap
-    // for (int i = 0; i < m.halfedges.size(); i++)
-    // {   
-        
-    //     halfEdge& he = m.halfedges[i];
-    //     if(he.twin != -1)
-    //         continue;
-    //     int vFrom = he.vertex;
-    //     int vTo = m.halfedges[he.next].vertex;
-    //     int key = edgeKey(vTo, vFrom);
-    //     if(edgeMap.count(key))
-    //     {   
-    //         int twinIdx = edgeMap[key];
-    //         he.twin = twinIdx;  
-    //         m.halfedges[twinIdx].twin = i;
-    //     }
-    // }
+    // currently this does nothing. its not clear to me if it will ever be useful but for now well keep it.
     m.faces[cap].alive = false;
     m.computeNormals();
 

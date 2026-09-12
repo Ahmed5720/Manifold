@@ -5,6 +5,7 @@
 #include <vector>
 #include <cstdio> 
 #include <iostream>
+#include <array>
 
 using namespace std;
 using namespace glm;
@@ -190,6 +191,24 @@ void Renderer::buildAxes()
     glBindVertexArray(0);
 }
 
+//for every triangle we create 3 new vertices instead of sharing them to allow flat shading. the new vertices carry the normal of the face instead of the averaged normal of sorrounding faces
+array<int, 3> Renderer::emitTriangle(int a, int b, int c, const vec3& faceN, vector<float>& vboData, const vector<Vertex>& vertices)
+{  
+    int base = vboData.size() / 6; // curr num of vertices 
+    int corners[3] = {a,b,c};
+    for (int i = 0; i < 3; i++)
+    {
+        const vec3& p = vertices[corners[i]].position;
+        vboData.push_back(p.x);
+        vboData.push_back(p.y);
+        vboData.push_back(p.z);
+        vboData.push_back(faceN.x); 
+        vboData.push_back(faceN.y);
+        vboData.push_back(faceN.z);
+    }
+
+    return array<int, 3>{base, base + 1, base + 2};
+}
 // takes a mesh in our mesh datastructure, and builds vbo and ebo from it so it can be uploaded on gpu
 // observe that we need to triangulate first (simply fan triangulation before we can build the ebo)
 void Renderer::uploadMesh(const Mesh& m)
@@ -213,14 +232,16 @@ void Renderer::uploadMesh(const Mesh& m)
     for (int fi = 0; fi < m.faces.size(); fi++)
     {   
         const auto verts = m.faceVertices(fi);
+        vec3 fnormal = m.faceNormal(fi);
         if(m.faces[fi].selected)
         {
             // fan triangulate 0,1,2 .. 0,2,3 .. 
             for (int i = 1; i < verts.size()-1; i++)
-            {
-                eboSelectedData.push_back((uint32_t)verts[0]);
-                eboSelectedData.push_back((uint32_t)verts[i]);
-                eboSelectedData.push_back((uint32_t)verts[i + 1]);
+            {   
+                auto tri = emitTriangle(verts[0], verts[i], verts[i+1], fnormal, vboData, m.vertices);
+                eboSelectedData.push_back(tri[0]);
+                eboSelectedData.push_back(tri[1]);
+                eboSelectedData.push_back(tri[2]);
             }
 
         }
@@ -229,9 +250,10 @@ void Renderer::uploadMesh(const Mesh& m)
             // fan triangulate 0,1,2 .. 0,2,3 .. 
             for (int i = 1; i < verts.size()-1; i++)
             {
-                eboUnselectedData.push_back((uint32_t)verts[0]);
-                eboUnselectedData.push_back((uint32_t)verts[i]);
-                eboUnselectedData.push_back((uint32_t)verts[i + 1]);
+                auto tri = emitTriangle(verts[0], verts[i], verts[i+1], fnormal, vboData, m.vertices);
+                eboUnselectedData.push_back(tri[0]);
+                eboUnselectedData.push_back(tri[1]);
+                eboUnselectedData.push_back(tri[2]);
             }
 
         }
@@ -315,28 +337,37 @@ void Renderer::drawMesh(const mat4& view, const mat4& proj)
   
     if (m_meshUnselectedIdxCount + m_meshSelectedIdxCount == 0)
         return;
-    glEnable(GL_DEPTH_TEST);
-    glUseProgram(m_meshProg);
-    setUniformMat4(m_meshProg, "uView", view);
-    setUniformMat4(m_meshProg, "uProj", proj);
 
-    glBindVertexArray(m_meshVAO);    
-    if (m_meshUnselectedIdxCount) {
-        setUniformVec3(m_meshProg, "BASE_COLOUR", vec3(0.78f, 0.78f, 0.80f));
-        glDrawElements(GL_TRIANGLES, m_meshUnselectedIdxCount,
-            GL_UNSIGNED_INT, nullptr);
+    if(solid)
+    {
+
+        glEnable(GL_DEPTH_TEST);
+        glUseProgram(m_meshProg);
+        setUniformMat4(m_meshProg, "uView", view);
+        setUniformMat4(m_meshProg, "uProj", proj);
+        setUniform1i(m_meshProg, "shaded", (int)shaded); 
+    
+        glBindVertexArray(m_meshVAO);    
+        if (m_meshUnselectedIdxCount) {
+            setUniformVec3(m_meshProg, "BASE_COLOUR", vec3(0.8f, 0.9f, 1.0f));
+            glDrawElements(GL_TRIANGLES, m_meshUnselectedIdxCount,
+                GL_UNSIGNED_INT, nullptr);
+            }
+            
+        if (m_meshSelectedIdxCount) {
+                const auto byteOffset =
+                (uintptr_t)m_meshUnselectedIdxCount * sizeof(uint32_t);
+                setUniformVec3(m_meshProg, "BASE_COLOUR", vec3(0.0f, 0.7f, 1.0f));
+                glDrawElements(GL_TRIANGLES, m_meshSelectedIdxCount,
+                    GL_UNSIGNED_INT, (const void*)byteOffset);
+                    
         }
-        
-    if (m_meshSelectedIdxCount) {
-            const auto byteOffset =
-            (uintptr_t)m_meshUnselectedIdxCount * sizeof(uint32_t);
-            setUniformVec3(m_meshProg, "BASE_COLOUR", vec3(1.00f, 0.55f, 0.12f));
-            glDrawElements(GL_TRIANGLES, m_meshSelectedIdxCount,
-                GL_UNSIGNED_INT, (const void*)byteOffset);
-                
+        glBindVertexArray(0);
     }
-    glBindVertexArray(0);
- 
+    
+    if(!wireframe)
+        return;
+
     //draw wireframe
     glEnable(GL_POLYGON_OFFSET_LINE);
     glPolygonOffset(-1.f, -1.f);
@@ -413,6 +444,12 @@ void Renderer::setUniformMat4(uint32_t prog, const char* name, const mat4& m) {
     const int loc = glGetUniformLocation(prog, name);
     if (loc != -1)
         glUniformMatrix4fv(loc, 1, GL_FALSE, value_ptr(m));
+}
+
+void Renderer::setUniform1i(uint32_t prog, const char* name, int f) {
+    const int loc = glGetUniformLocation(prog, name);
+    if (loc != -1)
+        glUniform1i(loc, f);
 }
  
 void Renderer::setUniformVec3(uint32_t prog, const char* name, vec3 v) {
